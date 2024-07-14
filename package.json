@@ -8,6 +8,14 @@
     "test": "vitest",
     "build": "tsc && tsc-alias"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aecomet/backoff-util"
+  },
+  "bugs": {
+    "url": "https://github.com/aecomet/backoff-util/issues"
+  },
+  "homepage": "https://github.com/aecomet/backoff-util#readme",
   "author": "aecomet",
   "license": "MIT",
   "devDependencies": {

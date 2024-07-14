@@ -5,12 +5,10 @@ A utility to use retry any functions
 ## Getting Started
 
 ```
-pnpm add -D
+pnpm add @aecomet/backoff-util
 ```
 
-```javascript
-
-```
+Example codes are [here](./example/)
 
 ## For Developers
 
