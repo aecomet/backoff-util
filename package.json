@@ -1,0 +1,20 @@
+{
+  "name": "@aecomet/backoff-util",
+  "version": "1.0.0",
+  "description": "A utility to use retry any functions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc && tsc-alias"
+  },
+  "author": "aecomet",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitest/ui": "^2.0.2",
+    "jest": "^29.7.0",
+    "tsc-alias": "^1.8.10",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.1"
+  }
+}
