@@ -12,7 +12,7 @@ describe('Integration backoff test', () => {
     vi.restoreAllMocks();
   });
 
-  test('A function successed and return value without error', async () => {
+  test('A function succeeded and return value without error', async () => {
     const utility: Utility = Utility.newWithConfig(config);
     const mock = vi.fn().mockImplementation(() => 'Hello');
 
@@ -22,7 +22,7 @@ describe('Integration backoff test', () => {
     expect(mock).toHaveBeenCalledTimes(1);
   });
 
-  test('A function successed and return value after a few errors caused', async () => {
+  test('A function succeeded and return value after a few errors caused', async () => {
     const utility: Utility = Utility.newWithConfig(config);
     const mock = vi.fn().mockImplementation(() => 'Hello');
 
@@ -40,6 +40,30 @@ describe('Integration backoff test', () => {
 
     expect(result).toEqual('Hello');
     expect(mock).toHaveBeenCalledTimes(4);
+  });
+
+  test('A function succeeded and observed sleep time', async () => {
+    const config: BackoffConfig = new BackoffConfig(1, 100, 100);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    for (let i = 0; i < 10; i++) {
+      const mock = vi.fn().mockImplementation(() => 'Hello');
+      mock.mockImplementationOnce(() => {
+        throw Error('error 1');
+      });
+
+      const startTime = vi.getRealSystemTime();
+      const result = await utility.backoff(mock);
+      const endTime = vi.getRealSystemTime();
+
+      const diffTime = endTime - startTime;
+
+      expect(diffTime).not.toEqual(100);
+      expect(result).toEqual('Hello');
+      expect(mock).toHaveBeenCalledTimes(2);
+
+      mock.mockClear();
+    }
   });
 
   test('A function failed after over retry counts', async () => {
