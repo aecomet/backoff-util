@@ -50,10 +50,11 @@ export class Utility {
    * @returns void after backoff sleep
    */
   private async wait(): Promise<void> {
-    const estimatedTime = Math.pow(this.config.getMinDelay, this.config.getRetryCount);
-    const backoff = Math.min(estimatedTime, this.config.getMaxDelay);
+    const estimatedTime: number = Math.pow(this.config.getMinDelay, this.config.getRetryCount);
+    const backoff: number = Math.min(estimatedTime, this.config.getMaxDelay);
+    const randomSleepTime: number = Math.random() * 9 + 1;
 
-    return new Promise((res) => setTimeout(res, backoff));
+    return new Promise((res) => setTimeout(res, backoff + randomSleepTime));
   }
 
   /**

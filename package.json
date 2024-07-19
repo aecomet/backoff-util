@@ -1,16 +1,24 @@
 {
   "name": "@aecomet/backoff-util",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A utility to use retry any functions",
   "keywords": [
-    "exponential backoff"
+    "exponential backoff",
+    "retry"
   ],
-  "main": "dist/index.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.cjs"
+    }
+  },
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "vitest --config __tests__/vitest.config.mts",
-    "dev:html": "tsc --project example/html/tsconfig.json  && tsc-alias && vite --config example/html/vite.config.mts",
-    "build": "tsc && tsc-alias"
+    "test": "vitest --config __tests__/vitest.config.mts run",
+    "dev:html": "vite --config example/html/vite.config.mts",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",
@@ -29,6 +37,7 @@
     "tsc-alias": "^1.8.10",
     "typescript": "^5.5.3",
     "vite": "^5.3.4",
+    "vite-plugin-dts": "4.0.0-beta.1",
     "vite-plugin-html": "^3.2.2",
     "vitest": "^2.0.1"
   }

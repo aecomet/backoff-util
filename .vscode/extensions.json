@@ -3,6 +3,7 @@
     "aaron-bond.better-comments",
     "jeff-hykin.better-dockerfile-syntax",
     "ms-azuretools.vscode-docker",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "vitest.explorer"
   ]
 }
