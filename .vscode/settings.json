@@ -8,5 +8,6 @@
   "editor.wordWrap": "on",
   "[dockerfile]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
-  }
+  },
+  "vitest.disableWorkspaceWarning": true
 }
