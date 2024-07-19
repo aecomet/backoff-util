@@ -49,7 +49,7 @@ describe('Integration backoff test', () => {
     for (let i = 0; i < 10; i++) {
       const mock = vi.fn().mockImplementation(() => 'Hello');
       mock.mockImplementationOnce(() => {
-        throw Error('error 1');
+        throw Error(`sleep error ${i}`);
       });
 
       const startTime = vi.getRealSystemTime();
