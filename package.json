@@ -1,6 +1,6 @@
 {
   "name": "@aecomet/backoff-util",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A utility to use retry any functions",
   "keywords": [
     "exponential backoff",
