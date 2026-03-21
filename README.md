@@ -5,7 +5,14 @@ A TypeScript utility library that provides configurable retry logic with backoff
 ## Installation
 
 ```sh
+# pnpm
 pnpm add @aecomet/backoff-util
+
+# npm
+npm install @aecomet/backoff-util
+
+# yarn
+yarn add @aecomet/backoff-util
 ```
 
 ## Usage
