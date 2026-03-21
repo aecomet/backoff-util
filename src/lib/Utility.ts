@@ -28,11 +28,15 @@ export class Utility {
     return new Utility(config);
   }
 
-  async backoff(callback: () => {}): Promise<any> {
+  async backoff<T>(callback: () => Promise<T>): Promise<T> {
     for (let i = 0; i <= this.config.getRetryCount; i++) {
       try {
         return await callback();
       } catch (error: unknown) {
+        const shouldRetry = this.config.getShouldRetry;
+        if (shouldRetry !== undefined && !shouldRetry(error, i)) {
+          throw error;
+        }
         if (this.hasErrorObject(error)) {
           console.warn('error caused, but it will retry after sleep...', 'retry count:', i, 'caused:', error.message);
           await this.wait();

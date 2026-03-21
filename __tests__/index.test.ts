@@ -78,4 +78,41 @@ describe('Integration backoff test', () => {
     );
     expect(mock).toHaveBeenCalledTimes(11);
   });
+
+  test('backoff returns a typed value (generic)', async () => {
+    const utility: Utility = Utility.newWithConfig(config);
+    const mock = vi.fn().mockResolvedValue(42);
+
+    const result: number = await utility.backoff<number>(mock);
+
+    expect(result).toBe(42);
+  });
+
+  test('shouldRetry stops retrying when predicate returns false', async () => {
+    const fatalError = new Error('fatal');
+    config.setShouldRetry((_error, _attempt) => false);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    const mock = vi.fn().mockImplementation(() => {
+      throw fatalError;
+    });
+
+    await expect(utility.backoff(mock)).rejects.toThrow('fatal');
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  test('shouldRetry keeps retrying when predicate returns true', async () => {
+    config.setShouldRetry(() => true);
+    const utility: Utility = Utility.newWithConfig(config);
+    const mock = vi.fn().mockImplementation(() => 'ok');
+
+    mock.mockImplementationOnce(() => {
+      throw Error('transient');
+    });
+
+    const result = await utility.backoff(mock);
+
+    expect(result).toEqual('ok');
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
 });

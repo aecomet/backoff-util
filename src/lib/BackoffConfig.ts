@@ -2,6 +2,7 @@ export class BackoffConfig {
   private retryCount: number = 0;
   private minDelay: number = 0;
   private maxDelay: number = 0;
+  private _shouldRetry: ((error: unknown, attempt: number) => boolean) | undefined = undefined;
 
   constructor(retryCount: number, minDelay: number, maxDelay: number) {
     this.retryCount = retryCount;
@@ -34,5 +35,14 @@ export class BackoffConfig {
 
   get getMaxDelay(): number {
     return this.maxDelay;
+  }
+
+  setShouldRetry(fn: (error: unknown, attempt: number) => boolean): BackoffConfig {
+    this._shouldRetry = fn;
+    return this;
+  }
+
+  get getShouldRetry(): ((error: unknown, attempt: number) => boolean) | undefined {
+    return this._shouldRetry;
   }
 }
