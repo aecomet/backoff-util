@@ -30,9 +30,12 @@ export class Utility {
 
   async backoff<T>(callback: () => Promise<T>): Promise<T> {
     const startTime = Date.now();
+    const signal = this.config.getSignal;
+    const timeoutMs = this.config.getTimeoutMs;
+    const shouldRetry = this.config.getShouldRetry;
+    const onRetry = this.config.getOnRetry;
 
     for (let i = 0; i <= this.config.getRetryCount; i++) {
-      const signal = this.config.getSignal;
       if (signal?.aborted) {
         throw new DOMException('Backoff aborted.', 'AbortError');
       }
@@ -44,18 +47,15 @@ export class Utility {
           throw new DOMException('Backoff aborted.', 'AbortError');
         }
 
-        const timeoutMs = this.config.getTimeoutMs;
         if (timeoutMs !== undefined && Date.now() - startTime >= timeoutMs) {
           throw Error('Backoff timed out: total elapsed time exceeded the limit.');
         }
 
-        const shouldRetry = this.config.getShouldRetry;
         if (shouldRetry !== undefined && !shouldRetry(error, i)) {
           throw error;
         }
 
         if (this.hasErrorObject(error)) {
-          const onRetry = this.config.getOnRetry;
           if (onRetry !== undefined) {
             onRetry(error, i);
           } else {
@@ -73,8 +73,8 @@ export class Utility {
 
   /**
    * Wait time based on the configured strategy.
-   * - exponential: min(minDelay ^ attempt, maxDelay) + jitter
-   * - linear:      min(minDelay * attempt, maxDelay) + jitter
+   * - exponential: min(minDelay * 2^attempt, maxDelay) + jitter
+   * - linear:      min(minDelay * (attempt + 1), maxDelay) + jitter
    * - fixed:       minDelay + jitter
    */
   private async wait(attempt: number): Promise<void> {
@@ -86,7 +86,7 @@ export class Utility {
     } else if (strategy === 'fixed') {
       base = min;
     } else {
-      base = Math.min(Math.pow(min, this.config.getRetryCount), max);
+      base = Math.min(min * Math.pow(2, attempt), max);
     }
 
     const jitter: number = Math.random() * 9 + 1;

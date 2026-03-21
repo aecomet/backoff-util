@@ -85,11 +85,11 @@ The main class. Instantiated via static factory methods; the constructor is priv
 
 The sleep duration after each failed attempt depends on the configured `strategy`:
 
-| Strategy      | Formula                                        |
-| ------------- | ---------------------------------------------- |
-| `exponential` | `min(minDelay ^ retryCount, maxDelay) + jitter` |
-| `linear`      | `min(minDelay * attempt, maxDelay) + jitter`   |
-| `fixed`       | `minDelay + jitter`                            |
+| Strategy      | Formula                                           |
+| ------------- | ------------------------------------------------- |
+| `exponential` | `min(minDelay * 2^attempt, maxDelay) + jitter`   |
+| `linear`      | `min(minDelay * (attempt + 1), maxDelay) + jitter` |
+| `fixed`       | `minDelay + jitter`                               |
 
 `jitter` is a random value between 1–10 ms to prevent thundering-herd issues.
 

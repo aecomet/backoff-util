@@ -4,11 +4,11 @@ export class BackoffConfig {
   private retryCount: number = 0;
   private minDelay: number = 0;
   private maxDelay: number = 0;
-  private _shouldRetry: ((error: unknown, attempt: number) => boolean) | undefined = undefined;
-  private _onRetry: ((error: unknown, attempt: number) => void) | undefined = undefined;
-  private _timeoutMs: number | undefined = undefined;
+  private _shouldRetry: ((error: unknown, attempt: number) => boolean) | undefined;
+  private _onRetry: ((error: unknown, attempt: number) => void) | undefined;
+  private _timeoutMs: number | undefined;
   private _strategy: BackoffStrategy = 'exponential';
-  private _signal: AbortSignal | undefined = undefined;
+  private _signal: AbortSignal | undefined;
 
   constructor(retryCount: number, minDelay: number, maxDelay: number) {
     this.retryCount = retryCount;
