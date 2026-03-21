@@ -3,6 +3,8 @@ export class BackoffConfig {
   private minDelay: number = 0;
   private maxDelay: number = 0;
   private _shouldRetry: ((error: unknown, attempt: number) => boolean) | undefined = undefined;
+  private _onRetry: ((error: unknown, attempt: number) => void) | undefined = undefined;
+  private _timeoutMs: number | undefined = undefined;
 
   constructor(retryCount: number, minDelay: number, maxDelay: number) {
     this.retryCount = retryCount;
@@ -44,5 +46,23 @@ export class BackoffConfig {
 
   get getShouldRetry(): ((error: unknown, attempt: number) => boolean) | undefined {
     return this._shouldRetry;
+  }
+
+  setOnRetry(fn: (error: unknown, attempt: number) => void): BackoffConfig {
+    this._onRetry = fn;
+    return this;
+  }
+
+  get getOnRetry(): ((error: unknown, attempt: number) => void) | undefined {
+    return this._onRetry;
+  }
+
+  setTimeoutMs(ms: number): BackoffConfig {
+    this._timeoutMs = ms;
+    return this;
+  }
+
+  get getTimeoutMs(): number | undefined {
+    return this._timeoutMs;
   }
 }

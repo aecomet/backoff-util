@@ -115,4 +115,33 @@ describe('Integration backoff test', () => {
     expect(result).toEqual('ok');
     expect(mock).toHaveBeenCalledTimes(2);
   });
+
+  test('onRetry callback is called instead of console.warn', async () => {
+    const onRetry = vi.fn();
+    config.setOnRetry(onRetry);
+    const utility: Utility = Utility.newWithConfig(config);
+    const consoleSpy = vi.spyOn(console, 'warn');
+
+    const mock = vi.fn().mockImplementation(() => 'ok');
+    mock.mockImplementationOnce(() => {
+      throw Error('transient');
+    });
+
+    await utility.backoff(mock);
+
+    expect(onRetry).toHaveBeenCalledOnce();
+    expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 0);
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  test('backoff throws when timeoutMs is exceeded', async () => {
+    config.setTimeoutMs(50);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    const mock = vi.fn().mockImplementation(async () => {
+      throw Error('slow error');
+    });
+
+    await expect(utility.backoff(mock)).rejects.toThrowError(/timed out/);
+  });
 });

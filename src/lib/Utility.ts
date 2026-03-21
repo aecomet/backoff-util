@@ -29,16 +29,29 @@ export class Utility {
   }
 
   async backoff<T>(callback: () => Promise<T>): Promise<T> {
+    const startTime = Date.now();
+
     for (let i = 0; i <= this.config.getRetryCount; i++) {
       try {
         return await callback();
       } catch (error: unknown) {
+        const timeoutMs = this.config.getTimeoutMs;
+        if (timeoutMs !== undefined && Date.now() - startTime >= timeoutMs) {
+          throw Error('Backoff timed out: total elapsed time exceeded the limit.');
+        }
+
         const shouldRetry = this.config.getShouldRetry;
         if (shouldRetry !== undefined && !shouldRetry(error, i)) {
           throw error;
         }
+
         if (this.hasErrorObject(error)) {
-          console.warn('error caused, but it will retry after sleep...', 'retry count:', i, 'caused:', error.message);
+          const onRetry = this.config.getOnRetry;
+          if (onRetry !== undefined) {
+            onRetry(error, i);
+          } else {
+            console.warn('error caused, but it will retry after sleep...', 'retry count:', i, 'caused:', error.message);
+          }
           await this.wait();
         } else {
           console.warn('Unknown error: ', error);
