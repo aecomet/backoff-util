@@ -78,4 +78,112 @@ describe('Integration backoff test', () => {
     );
     expect(mock).toHaveBeenCalledTimes(11);
   });
+
+  test('backoff returns a typed value (generic)', async () => {
+    const utility: Utility = Utility.newWithConfig(config);
+    const mock = vi.fn().mockResolvedValue(42);
+
+    const result: number = await utility.backoff<number>(mock);
+
+    expect(result).toBe(42);
+  });
+
+  test('shouldRetry stops retrying when predicate returns false', async () => {
+    const fatalError = new Error('fatal');
+    config.setShouldRetry((_error, _attempt) => false);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    const mock = vi.fn().mockImplementation(() => {
+      throw fatalError;
+    });
+
+    await expect(utility.backoff(mock)).rejects.toThrow('fatal');
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  test('shouldRetry keeps retrying when predicate returns true', async () => {
+    config.setShouldRetry(() => true);
+    const utility: Utility = Utility.newWithConfig(config);
+    const mock = vi.fn().mockImplementation(() => 'ok');
+
+    mock.mockImplementationOnce(() => {
+      throw Error('transient');
+    });
+
+    const result = await utility.backoff(mock);
+
+    expect(result).toEqual('ok');
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+
+  test('onRetry callback is called instead of console.warn', async () => {
+    const onRetry = vi.fn();
+    config.setOnRetry(onRetry);
+    const utility: Utility = Utility.newWithConfig(config);
+    const consoleSpy = vi.spyOn(console, 'warn');
+
+    const mock = vi.fn().mockImplementation(() => 'ok');
+    mock.mockImplementationOnce(() => {
+      throw Error('transient');
+    });
+
+    await utility.backoff(mock);
+
+    expect(onRetry).toHaveBeenCalledOnce();
+    expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 0);
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  test('backoff throws when timeoutMs is exceeded', async () => {
+    config.setTimeoutMs(50);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    const mock = vi.fn().mockImplementation(async () => {
+      throw Error('slow error');
+    });
+
+    await expect(utility.backoff(mock)).rejects.toThrowError(/timed out/);
+  });
+
+  test('backoff aborts when AbortSignal is triggered', async () => {
+    const controller = new AbortController();
+    config.setSignal(controller.signal);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    const mock = vi.fn().mockImplementation(() => {
+      controller.abort();
+      throw Error('error after abort');
+    });
+
+    await expect(utility.backoff(mock)).rejects.toThrow('Backoff aborted.');
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  test('linear strategy increases delay per attempt', async () => {
+    const linearConfig = new BackoffConfig(3, 10, 1000);
+    linearConfig.setStrategy('linear');
+    const utility: Utility = Utility.newWithConfig(linearConfig);
+
+    const mock = vi.fn().mockImplementation(() => 'ok');
+    mock.mockImplementationOnce(() => {
+      throw Error('e1');
+    });
+
+    const result = await utility.backoff(mock);
+    expect(result).toEqual('ok');
+  });
+
+  test('fixed strategy uses constant delay', async () => {
+    const fixedConfig = new BackoffConfig(3, 10, 1000);
+    fixedConfig.setStrategy('fixed');
+    const utility: Utility = Utility.newWithConfig(fixedConfig);
+
+    const mock = vi.fn().mockImplementation(() => 'ok');
+    mock.mockImplementationOnce(() => {
+      throw Error('e1');
+    });
+
+    const result = await utility.backoff(mock);
+    expect(result).toEqual('ok');
+  });
 });
