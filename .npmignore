@@ -1,0 +1,25 @@
+# Source
+src/
+
+# Tests
+__tests__/
+
+# Examples
+example/
+
+# Docs
+docs/
+
+# Config files
+vite.config.mts
+tsconfig.json
+prettier.config.js
+pnpm-lock.yaml
+.editorconfig
+.node-version
+
+# Editor
+.vscode/
+
+# GitHub
+.github/
