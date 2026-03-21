@@ -2,7 +2,7 @@
 
 ## Overview
 
-`@aecomet/backoff-util` is a zero-dependency TypeScript utility library that provides exponential backoff retry logic for any async function. It is distributed as both ESM and UMD modules.
+`@aecomet/backoff-util` is a zero-dependency TypeScript utility library that provides configurable retry logic with backoff for any async function. It is distributed as both ESM and UMD modules.
 
 ## Tech Stack
 
@@ -60,33 +60,40 @@ backoff-util/
 
 Holds the retry configuration. All setters return `this` for method chaining.
 
-| Property     | Type     | Default (newWithDefault) | Description                              |
-| ------------ | -------- | ------------------------ | ---------------------------------------- |
-| `retryCount` | `number` | `10`                     | Maximum number of retry attempts         |
-| `minDelay`   | `number` | `10`                     | Base delay value used in backoff formula |
-| `maxDelay`   | `number` | `1000`                   | Upper bound for the computed delay (ms)  |
+| Property       | Type                                           | Default (`newWithDefault`) | Description                                          |
+| -------------- | ---------------------------------------------- | -------------------------- | ---------------------------------------------------- |
+| `retryCount`   | `number`                                       | `10`                       | Maximum number of retry attempts                     |
+| `minDelay`     | `number`                                       | `10`                       | Base delay value (ms) used in the backoff formula    |
+| `maxDelay`     | `number`                                       | `1000`                     | Upper bound for the computed delay (ms)              |
+| `shouldRetry`  | `(error: unknown, attempt: number) => boolean` | `undefined`                | Predicate to decide whether to retry; rethrows immediately if it returns `false` |
+| `onRetry`      | `(error: unknown, attempt: number) => void`    | `undefined`                | Called on each retry instead of the built-in `console.warn` |
+| `timeoutMs`    | `number`                                       | `undefined`                | Total elapsed time limit (ms); throws when exceeded  |
+| `strategy`     | `'exponential' \| 'linear' \| 'fixed'`        | `'exponential'`            | Delay calculation strategy (see Backoff Algorithm)   |
+| `signal`       | `AbortSignal`                                  | `undefined`                | Cancels the retry loop when the signal is aborted    |
 
 ### `Utility`
 
 The main class. Instantiated via static factory methods; the constructor is private.
 
-| Method                             | Description                                        |
-| ---------------------------------- | -------------------------------------------------- |
-| `Utility.newWithDefault()`         | Creates an instance with default `BackoffConfig`   |
-| `Utility.newWithConfig(config)`    | Creates an instance with a custom `BackoffConfig`  |
-| `backoff(callback: () => {})`      | Executes the callback with exponential backoff     |
+| Method                          | Description                                       |
+| ------------------------------- | ------------------------------------------------- |
+| `Utility.newWithDefault()`      | Creates an instance with default `BackoffConfig`  |
+| `Utility.newWithConfig(config)` | Creates an instance with a custom `BackoffConfig` |
+| `backoff<T>(callback)`          | Executes the callback with the configured backoff |
 
 ## Backoff Algorithm
 
-On each failed attempt, the sleep duration is calculated as follows:
+The sleep duration after each failed attempt depends on the configured `strategy`:
 
-```
-estimatedTime = minDelay ^ retryCount
-backoff       = min(estimatedTime, maxDelay)
-sleep         = backoff + random(1, 10)   // jitter: 1–10 ms
-```
+| Strategy      | Formula                                        |
+| ------------- | ---------------------------------------------- |
+| `exponential` | `min(minDelay ^ retryCount, maxDelay) + jitter` |
+| `linear`      | `min(minDelay * attempt, maxDelay) + jitter`   |
+| `fixed`       | `minDelay + jitter`                            |
 
-The random jitter prevents thundering-herd issues when multiple clients retry simultaneously. If the callback still fails after `retryCount` attempts, an error is thrown.
+`jitter` is a random value between 1–10 ms to prevent thundering-herd issues.
+
+If the callback still fails after `retryCount` attempts (or `timeoutMs` is exceeded, or the `AbortSignal` is triggered), an error is thrown.
 
 ## Build Output
 
