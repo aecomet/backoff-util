@@ -1,3 +1,5 @@
+export type BackoffStrategy = 'exponential' | 'linear' | 'fixed';
+
 export class BackoffConfig {
   private retryCount: number = 0;
   private minDelay: number = 0;
@@ -5,6 +7,8 @@ export class BackoffConfig {
   private _shouldRetry: ((error: unknown, attempt: number) => boolean) | undefined = undefined;
   private _onRetry: ((error: unknown, attempt: number) => void) | undefined = undefined;
   private _timeoutMs: number | undefined = undefined;
+  private _strategy: BackoffStrategy = 'exponential';
+  private _signal: AbortSignal | undefined = undefined;
 
   constructor(retryCount: number, minDelay: number, maxDelay: number) {
     this.retryCount = retryCount;
@@ -64,5 +68,23 @@ export class BackoffConfig {
 
   get getTimeoutMs(): number | undefined {
     return this._timeoutMs;
+  }
+
+  setStrategy(strategy: BackoffStrategy): BackoffConfig {
+    this._strategy = strategy;
+    return this;
+  }
+
+  get getStrategy(): BackoffStrategy {
+    return this._strategy;
+  }
+
+  setSignal(signal: AbortSignal): BackoffConfig {
+    this._signal = signal;
+    return this;
+  }
+
+  get getSignal(): AbortSignal | undefined {
+    return this._signal;
   }
 }

@@ -144,4 +144,46 @@ describe('Integration backoff test', () => {
 
     await expect(utility.backoff(mock)).rejects.toThrowError(/timed out/);
   });
+
+  test('backoff aborts when AbortSignal is triggered', async () => {
+    const controller = new AbortController();
+    config.setSignal(controller.signal);
+    const utility: Utility = Utility.newWithConfig(config);
+
+    const mock = vi.fn().mockImplementation(() => {
+      controller.abort();
+      throw Error('error after abort');
+    });
+
+    await expect(utility.backoff(mock)).rejects.toThrow('Backoff aborted.');
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  test('linear strategy increases delay per attempt', async () => {
+    const linearConfig = new BackoffConfig(3, 10, 1000);
+    linearConfig.setStrategy('linear');
+    const utility: Utility = Utility.newWithConfig(linearConfig);
+
+    const mock = vi.fn().mockImplementation(() => 'ok');
+    mock.mockImplementationOnce(() => {
+      throw Error('e1');
+    });
+
+    const result = await utility.backoff(mock);
+    expect(result).toEqual('ok');
+  });
+
+  test('fixed strategy uses constant delay', async () => {
+    const fixedConfig = new BackoffConfig(3, 10, 1000);
+    fixedConfig.setStrategy('fixed');
+    const utility: Utility = Utility.newWithConfig(fixedConfig);
+
+    const mock = vi.fn().mockImplementation(() => 'ok');
+    mock.mockImplementationOnce(() => {
+      throw Error('e1');
+    });
+
+    const result = await utility.backoff(mock);
+    expect(result).toEqual('ok');
+  });
 });

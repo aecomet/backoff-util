@@ -32,9 +32,18 @@ export class Utility {
     const startTime = Date.now();
 
     for (let i = 0; i <= this.config.getRetryCount; i++) {
+      const signal = this.config.getSignal;
+      if (signal?.aborted) {
+        throw new DOMException('Backoff aborted.', 'AbortError');
+      }
+
       try {
         return await callback();
       } catch (error: unknown) {
+        if (signal?.aborted) {
+          throw new DOMException('Backoff aborted.', 'AbortError');
+        }
+
         const timeoutMs = this.config.getTimeoutMs;
         if (timeoutMs !== undefined && Date.now() - startTime >= timeoutMs) {
           throw Error('Backoff timed out: total elapsed time exceeded the limit.');
@@ -52,7 +61,7 @@ export class Utility {
           } else {
             console.warn('error caused, but it will retry after sleep...', 'retry count:', i, 'caused:', error.message);
           }
-          await this.wait();
+          await this.wait(i);
         } else {
           console.warn('Unknown error: ', error);
           throw Error('Unknown error');
@@ -63,15 +72,26 @@ export class Utility {
   }
 
   /**
-   * Wait time
-   * @returns void after backoff sleep
+   * Wait time based on the configured strategy.
+   * - exponential: min(minDelay ^ attempt, maxDelay) + jitter
+   * - linear:      min(minDelay * attempt, maxDelay) + jitter
+   * - fixed:       minDelay + jitter
    */
-  private async wait(): Promise<void> {
-    const estimatedTime: number = Math.pow(this.config.getMinDelay, this.config.getRetryCount);
-    const backoff: number = Math.min(estimatedTime, this.config.getMaxDelay);
-    const randomSleepTime: number = Math.random() * 9 + 1;
+  private async wait(attempt: number): Promise<void> {
+    const { getMinDelay: min, getMaxDelay: max, getStrategy: strategy } = this.config;
+    let base: number;
 
-    return new Promise((res) => setTimeout(res, backoff + randomSleepTime));
+    if (strategy === 'linear') {
+      base = Math.min(min * (attempt + 1), max);
+    } else if (strategy === 'fixed') {
+      base = min;
+    } else {
+      base = Math.min(Math.pow(min, this.config.getRetryCount), max);
+    }
+
+    const jitter: number = Math.random() * 9 + 1;
+
+    return new Promise((res) => setTimeout(res, base + jitter));
   }
 
   /**
