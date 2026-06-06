@@ -47,16 +47,16 @@ const result = await utility.backoff(async () => {
 
 ### `BackoffConfig` options
 
-| Parameter     | Type                                           | Default        | Description                                          |
-| ------------- | ---------------------------------------------- | -------------- | ---------------------------------------------------- |
-| `retryCount`  | `number`                                       | —              | Maximum number of retry attempts                     |
-| `minDelay`    | `number`                                       | —              | Base delay value (ms) used in the backoff formula    |
-| `maxDelay`    | `number`                                       | —              | Upper bound for the computed delay (ms)              |
-| `shouldRetry` | `(error: unknown, attempt: number) => boolean` | retry always   | Return `false` to stop retrying immediately          |
-| `onRetry`     | `(error: unknown, attempt: number) => void`    | `console.warn` | Called on each retry for logging or side effects     |
-| `timeoutMs`   | `number`                                       | none           | Total elapsed time limit (ms); throws when exceeded  |
-| `strategy`    | `'exponential' \| 'linear' \| 'fixed'`        | `exponential`  | Delay calculation strategy                           |
-| `signal`      | `AbortSignal`                                  | none           | Cancels the retry loop when the signal is aborted    |
+| Parameter     | Type                                           | Default        | Description                                         |
+| ------------- | ---------------------------------------------- | -------------- | --------------------------------------------------- |
+| `retryCount`  | `number`                                       | —              | Maximum number of retry attempts                    |
+| `minDelay`    | `number`                                       | —              | Base delay value (ms) used in the backoff formula   |
+| `maxDelay`    | `number`                                       | —              | Upper bound for the computed delay (ms)             |
+| `shouldRetry` | `(error: unknown, attempt: number) => boolean` | retry always   | Return `false` to stop retrying immediately         |
+| `onRetry`     | `(error: unknown, attempt: number) => void`    | `console.warn` | Called on each retry for logging or side effects    |
+| `timeoutMs`   | `number`                                       | none           | Total elapsed time limit (ms); throws when exceeded |
+| `strategy`    | `'exponential' \| 'linear' \| 'fixed'`         | `exponential`  | Delay calculation strategy                          |
+| `signal`      | `AbortSignal`                                  | none           | Cancels the retry loop when the signal is aborted   |
 
 ### Advanced usage
 

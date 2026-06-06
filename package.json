@@ -10,15 +10,23 @@
   "module": "dist/index.mjs",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.umd.cjs"
+      "import": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/index.umd.cjs"
+      }
     }
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "vitest --config __tests__/vitest.config.mts run",
     "dev:html": "vite --config example/html/vite.config.mts",
-    "build": "vite build"
+    "build": "vite build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -31,14 +39,13 @@
   "author": "aecomet",
   "license": "MIT",
   "devDependencies": {
-    "@vitest/ui": "^4.1.0",
-    "axios": "^1.13.6",
-    "jest": "^30.3.0",
-    "tsc-alias": "^1.8.16",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.0",
-    "vite-plugin-dts": "4.5.4",
+    "@vitest/ui": "^4.1.8",
+    "axios": "^1.17.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vite-plugin-dts": "5.0.2",
     "vite-plugin-html": "^3.2.2",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.8"
   }
 }
