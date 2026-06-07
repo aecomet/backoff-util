@@ -23,3 +23,6 @@ pnpm-lock.yaml
 
 # GitHub
 .github/
+
+# opencode
+.opencode/
