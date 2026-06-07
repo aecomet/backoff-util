@@ -23,6 +23,7 @@
 
     /* Type Checking */
     "strict": true,
+    "ignoreDeprecations": "6.0",
 
     /* Completeness */
     "skipLibCheck": true
