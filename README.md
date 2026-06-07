@@ -131,6 +131,11 @@ node example/sampleWithAbort.mjs
 
 ## For Developers
 
+### Prerequisites
+
+- Node.js `26.3.0` (see `.node-version`)
+- pnpm `11`
+
 ```sh
 # Build
 pnpm build

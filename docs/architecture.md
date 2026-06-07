@@ -11,7 +11,7 @@
 | Language       | TypeScript             | ^5.x    |
 | Build          | Vite                   | ^8.x    |
 | Test           | Vitest                 | ^4.x    |
-| Package manager| pnpm                   | 10      |
+| Package manager| pnpm                   | 11      |
 | CI             | GitHub Actions         | —       |
 | Lint (commit)  | commitlint (Docker)    | —       |
 
