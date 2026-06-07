@@ -117,8 +117,19 @@ docs: update README with usage examples
 chore(deps): upgrade vitest to v4
 ```
 
-## Package Updates
+## Pre-commit Workflow
 
-- Use npm-check-updates and run the following command:
-  - `npx ncu`
-- For packages that have pending updates, analyze and report the release notes only for packages with major version bumps.
+Lefthook is configured to run automatically:
+- `pre-commit`: Runs `pnpm format:check` and (if available) `pnpm lint`
+- `pre-push`: Reviews staged changes via `scripts/review-diff.sh`
+
+Before committing, ensure:
+1. Stage your changes (`git add`)
+2. Lefthook will auto-verify formatting and lint
+3. If hooks fail, fix issues and try again
+
+### Package Updates
+
+- Use `npx npm-check-updates -u` to update all packages to latest versions
+- Then run `CI=true pnpm install --no-frozen-lockfile` to update lockfile
+- Verify with `pnpm build` after updates
