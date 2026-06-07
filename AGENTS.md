@@ -12,12 +12,13 @@
 
 ## Reference Documents (read before working)
 
-| File                              | Purpose                                               |
-| --------------------------------- | ----------------------------------------------------- |
-| `.github/copilot-instructions.md` | Coding conventions, commit workflow, review checklist |
-| `docs/architecture.md`            | Project structure, public API, build output           |
-| `.agent/tdd/SKILL.md`             | TDD workflow — always follow when writing code        |
-| `README.md`                       | Usage examples, options reference                     |
+| File                              | Purpose                                                      |
+| --------------------------------- | ------------------------------------------------------------ |
+| `.github/copilot-instructions.md` | Coding conventions, commit workflow, review checklist        |
+| `docs/architecture.md`            | Project structure, public API, build output                  |
+| `docs/coding-conventions.md`      | Import rules, TypeScript style, testing & commit conventions |
+| `.agent/tdd/SKILL.md`             | TDD workflow — always follow when writing code               |
+| `README.md`                       | Usage examples, options reference                            |
 
 ## Skills Available
 
