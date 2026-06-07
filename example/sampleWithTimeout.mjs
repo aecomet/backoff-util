@@ -3,11 +3,9 @@
  *
  * Stops retrying once the total elapsed time exceeds the limit.
  */
-import { BackoffConfig, Utility } from '@aecomet/backoff-util';
+import { Utility } from '@aecomet/backoff-util';
 
-const config = new BackoffConfig(100, 50, 500).setTimeoutMs(300);
-
-const utility = Utility.newWithConfig(config);
+const utility = new Utility({ retryCount: 100, minDelay: 50, maxDelay: 500, timeoutMs: 300 });
 
 try {
   await utility.backoff(async () => {

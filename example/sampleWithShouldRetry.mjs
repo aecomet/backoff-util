@@ -4,16 +4,19 @@
  * Retries only on "retryable" errors (e.g. 5xx).
  * Stops immediately on "fatal" errors (e.g. 4xx).
  */
-import { BackoffConfig, Utility } from '@aecomet/backoff-util';
+import { Utility } from '@aecomet/backoff-util';
 
 let attempt = 0;
 
-const config = new BackoffConfig(5, 10, 500).setShouldRetry((error, _i) => {
-  // Only retry when the error message starts with "5" (simulate 5xx)
-  return error instanceof Error && error.message.startsWith('5');
+const utility = new Utility({
+  retryCount: 5,
+  minDelay: 10,
+  maxDelay: 500,
+  shouldRetry: (ctx) => {
+    // Only retry when the error message starts with "5" (simulate 5xx)
+    return ctx.error instanceof Error && ctx.error.message.startsWith('5');
+  }
 });
-
-const utility = Utility.newWithConfig(config);
 
 // --- Case 1: retryable error, eventually succeeds ---
 attempt = 0;

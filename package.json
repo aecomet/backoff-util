@@ -26,7 +26,8 @@
     "dev:html": "vite --config example/html/vite.config.mts",
     "build": "vite build",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

@@ -4,10 +4,9 @@
     "target": "ES2023",
 
     /* Modules */
-    "baseUrl": "./",
     "paths": {
-      "@src/*": ["src/*"],
-      "@test/*": ["__tests__/*"]
+      "@src/*": ["./src/*"],
+      "@test/*": ["./__tests__/*"]
     },
 
     /* Emit */
