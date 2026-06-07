@@ -39,7 +39,7 @@ const utility = new Utility({
   retryCount: 5,
   minDelay: 100,
   maxDelay: 2000,
-  delay: 'linear',
+  delay: 'linear'
 });
 const result = await utility.backoff(async () => {
   return await fetchSomething();
@@ -48,18 +48,18 @@ const result = await utility.backoff(async () => {
 
 ### `BackoffOptions`
 
-| Option        | Type                                           | Default          | Description                                          |
-| ------------- | ---------------------------------------------- | ---------------- | ---------------------------------------------------- |
-| `retryCount`  | `number`                                       | `10`             | Maximum number of retry attempts                     |
-| `minDelay`    | `number`                                       | `10`             | Base delay value (ms) used in the backoff formula    |
-| `maxDelay`    | `number`                                       | `1000`           | Upper bound for the computed delay (ms)              |
-| `delay`       | `'exponential' \| 'linear' \| 'fixed'`         | `'exponential'`  | Delay calculation strategy, or a custom function     |
-| `factor`      | `number`                                       | `2`              | Multiplier for exponential delay (`minDelay * factor^attempt`) |
-| `jitter`      | `'full' \| 'none'`                             | `'full'`         | Jitter strategy, or a custom function                |
-| `shouldRetry` | `(ctx: BackoffContext) => boolean`             | retry always     | Return `false` to stop retrying immediately          |
-| `onRetry`     | `(ctx: BackoffContext) => void`                | `console.warn`   | Called on each retry for logging or side effects     |
-| `timeoutMs`   | `number`                                       | none             | Total elapsed time limit (ms); throws when exceeded  |
-| `signal`      | `AbortSignal`                                  | none             | Cancels the retry loop when the signal is aborted    |
+| Option        | Type                                   | Default         | Description                                                    |
+| ------------- | -------------------------------------- | --------------- | -------------------------------------------------------------- |
+| `retryCount`  | `number`                               | `10`            | Maximum number of retry attempts                               |
+| `minDelay`    | `number`                               | `10`            | Base delay value (ms) used in the backoff formula              |
+| `maxDelay`    | `number`                               | `1000`          | Upper bound for the computed delay (ms)                        |
+| `delay`       | `'exponential' \| 'linear' \| 'fixed'` | `'exponential'` | Delay calculation strategy, or a custom function               |
+| `factor`      | `number`                               | `2`             | Multiplier for exponential delay (`minDelay * factor^attempt`) |
+| `jitter`      | `'full' \| 'none'`                     | `'full'`        | Jitter strategy, or a custom function                          |
+| `shouldRetry` | `(ctx: BackoffContext) => boolean`     | retry always    | Return `false` to stop retrying immediately                    |
+| `onRetry`     | `(ctx: BackoffContext) => void`        | `console.warn`  | Called on each retry for logging or side effects               |
+| `timeoutMs`   | `number`                               | none            | Total elapsed time limit (ms); throws when exceeded            |
+| `signal`      | `AbortSignal`                          | none            | Cancels the retry loop when the signal is aborted              |
 
 ### Advanced usage
 
@@ -82,7 +82,7 @@ const utility = new Utility({
     console.log(`Retry #${ctx.attempt}:`, ctx.error);
   },
   timeoutMs: 10000,
-  signal: controller.signal,
+  signal: controller.signal
 });
 
 const result = await utility.backoff(async () => fetchSomething());
@@ -98,7 +98,7 @@ import { Utility } from '@aecomet/backoff-util';
 // Custom exponential delay
 const utility = new Utility({
   delay: (ctx) => Math.min(100 * Math.pow(2, ctx.attempt), 5000),
-  jitter: (delay) => delay * (0.5 + Math.random()),
+  jitter: (delay) => delay * (0.5 + Math.random())
 });
 ```
 
@@ -106,10 +106,10 @@ const utility = new Utility({
 
 Callbacks receive a context object:
 
-| Field     | Type      | Description                              |
-| --------- | --------- | ---------------------------------------- |
-| `attempt` | `number`  | Current attempt index (0-based)          |
-| `error`   | `unknown` | The error that caused the retry          |
+| Field     | Type      | Description                                  |
+| --------- | --------- | -------------------------------------------- |
+| `attempt` | `number`  | Current attempt index (0-based)              |
+| `error`   | `unknown` | The error that caused the retry              |
 | `elapsed` | `number`  | Total elapsed time since the first call (ms) |
 
 ## Examples

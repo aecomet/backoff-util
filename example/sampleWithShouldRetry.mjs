@@ -15,7 +15,7 @@ const utility = new Utility({
   shouldRetry: (ctx) => {
     // Only retry when the error message starts with "5" (simulate 5xx)
     return ctx.error instanceof Error && ctx.error.message.startsWith('5');
-  },
+  }
 });
 
 // --- Case 1: retryable error, eventually succeeds ---

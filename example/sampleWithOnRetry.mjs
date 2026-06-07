@@ -13,7 +13,7 @@ const utility = new Utility({
   maxDelay: 500,
   onRetry: (ctx) => {
     console.log(`[onRetry] attempt=${ctx.attempt} error="${ctx.error.message}"`);
-  },
+  }
 });
 
 const result = await utility.backoff(async () => {

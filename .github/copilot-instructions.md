@@ -27,7 +27,7 @@ applyTo: '**'
 
 - Keep `strict` mode enabled at all times.
 - Define types explicitly; avoid `any`.
-- Use relative paths in imports (no path aliases).
+- Use path alias `@src/*` where applicable (configured in vitest config).
 - All public API must be exported from `src/index.ts`.
 
 ### Prettier

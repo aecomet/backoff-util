@@ -17,7 +17,7 @@ const utility = new Utility({
   retryCount: 100,
   minDelay: 50,
   maxDelay: 500,
-  signal: controller.signal,
+  signal: controller.signal
 });
 
 try {

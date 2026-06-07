@@ -8,7 +8,8 @@ describe('Utility', () => {
   });
 
   test('recovers after errors and returns final value', { timeout: 10000 }, async () => {
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error('e1'))
       .mockRejectedValueOnce(new Error('e2'))
       .mockResolvedValueOnce('ok');
@@ -43,9 +44,7 @@ describe('Utility', () => {
 
   test('onRetry callback is called with context', { timeout: 10000 }, async () => {
     const onRetry = vi.fn();
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error('transient'))
-      .mockResolvedValueOnce('ok');
+    const fn = vi.fn().mockRejectedValueOnce(new Error('transient')).mockResolvedValueOnce('ok');
 
     const util = new Utility({ retryCount: 5, minDelay: 1, maxDelay: 5, jitter: 'none', onRetry });
     await util.backoff(fn);
@@ -80,9 +79,7 @@ describe('Utility', () => {
 
   test('accepts custom delay function (DI point)', async () => {
     const customDelay = vi.fn().mockReturnValue(1);
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error('e1'))
-      .mockResolvedValueOnce('ok');
+    const fn = vi.fn().mockRejectedValueOnce(new Error('e1')).mockResolvedValueOnce('ok');
 
     const util = new Utility({ retryCount: 5, minDelay: 10, maxDelay: 100, delay: customDelay, jitter: 'none' });
     await util.backoff(fn);
@@ -96,9 +93,7 @@ describe('Utility', () => {
 
   test('accepts custom jitter function (DI point)', async () => {
     const customJitter = vi.fn().mockReturnValue(1);
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error('e1'))
-      .mockResolvedValueOnce('ok');
+    const fn = vi.fn().mockRejectedValueOnce(new Error('e1')).mockResolvedValueOnce('ok');
 
     const util = new Utility({ retryCount: 5, minDelay: 10, maxDelay: 100, jitter: customJitter });
     await util.backoff(fn);

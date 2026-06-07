@@ -5,17 +5,22 @@ import { createFullJitter, createNoJitter } from './jitter';
 function normalizeDelay(delay: BackoffOptions['delay'], minDelay: number, maxDelay: number, factor: number): DelayFn {
   if (typeof delay === 'function') return delay;
   switch (delay) {
-    case 'linear': return createLinearDelay({ minDelay, maxDelay });
-    case 'fixed': return createFixedDelay({ minDelay });
-    default: return createExponentialDelay({ minDelay, maxDelay, factor });
+    case 'linear':
+      return createLinearDelay({ minDelay, maxDelay });
+    case 'fixed':
+      return createFixedDelay({ minDelay });
+    default:
+      return createExponentialDelay({ minDelay, maxDelay, factor });
   }
 }
 
 function normalizeJitter(jitter: BackoffOptions['jitter']): JitterFn {
   if (typeof jitter === 'function') return jitter;
   switch (jitter) {
-    case 'none': return createNoJitter();
-    default: return createFullJitter();
+    case 'none':
+      return createNoJitter();
+    default:
+      return createFullJitter();
   }
 }
 
