@@ -1,6 +1,6 @@
-import type { BackoffContext, BackoffOptions, DelayFn, JitterFn } from './types';
-import { createExponentialDelay, createLinearDelay, createFixedDelay } from './delay';
-import { createFullJitter, createNoJitter } from './jitter';
+import type { BackoffContext, BackoffOptions, DelayFn, JitterFn } from '@src/types';
+import { createExponentialDelay, createLinearDelay, createFixedDelay } from '@src/delay';
+import { createFullJitter, createNoJitter } from '@src/jitter';
 
 function normalizeDelay(delay: BackoffOptions['delay'], minDelay: number, maxDelay: number, factor: number): DelayFn {
   if (typeof delay === 'function') return delay;

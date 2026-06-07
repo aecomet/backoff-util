@@ -1,4 +1,4 @@
-import type { JitterFn } from './types';
+import type { JitterFn } from '@src/types';
 
 export function createFullJitter(): JitterFn {
   return (delay: number) => Math.random() * delay;

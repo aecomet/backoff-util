@@ -1,4 +1,4 @@
-import type { BackoffContext, DelayFn } from './types';
+import type { BackoffContext, DelayFn } from '@src/types';
 
 export interface ExponentialDelayOptions {
   minDelay: number;
