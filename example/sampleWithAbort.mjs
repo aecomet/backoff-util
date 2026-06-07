@@ -3,7 +3,7 @@
  *
  * Cancels the retry loop from outside using AbortController.
  */
-import { BackoffConfig, Utility } from '@aecomet/backoff-util';
+import { Utility } from '@aecomet/backoff-util';
 
 const controller = new AbortController();
 
@@ -13,8 +13,12 @@ setTimeout(() => {
   controller.abort();
 }, 200);
 
-const config = new BackoffConfig(100, 50, 500).setSignal(controller.signal);
-const utility = Utility.newWithConfig(config);
+const utility = new Utility({
+  retryCount: 100,
+  minDelay: 50,
+  maxDelay: 500,
+  signal: controller.signal,
+});
 
 try {
   await utility.backoff(async () => {

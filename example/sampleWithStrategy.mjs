@@ -3,12 +3,11 @@
  *
  * Demonstrates exponential, linear, and fixed backoff strategies.
  */
-import { BackoffConfig, Utility } from '@aecomet/backoff-util';
+import { Utility } from '@aecomet/backoff-util';
 
 async function runWithStrategy(strategy) {
   let attempt = 0;
-  const config = new BackoffConfig(5, 20, 200).setStrategy(strategy);
-  const utility = Utility.newWithConfig(config);
+  const utility = new Utility({ retryCount: 5, minDelay: 20, maxDelay: 200, delay: strategy });
 
   const start = Date.now();
   const result = await utility.backoff(async () => {

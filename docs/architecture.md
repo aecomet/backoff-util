@@ -9,7 +9,7 @@
 | Category       | Tool / Library         | Version |
 | -------------- | ---------------------- | ------- |
 | Language       | TypeScript             | ^5.x    |
-| Build          | Vite + vite-plugin-dts | ^8.x    |
+| Build          | Vite                   | ^8.x    |
 | Test           | Vitest                 | ^4.x    |
 | Package manager| pnpm                   | 10      |
 | CI             | GitHub Actions         | —       |
@@ -21,19 +21,27 @@
 backoff-util/
 ├── src/                        # Library source
 │   ├── index.ts                # Public API entry point
-│   ├── lib/
-│   │   ├── BackoffConfig.ts    # Retry configuration
-│   │   └── Utility.ts          # Backoff execution logic
-│   └── types/
-│       └── ErrorCallback.ts    # Shared type definitions
+│   ├── types.ts                # Shared type definitions
+│   ├── delay.ts                # Delay function factories (exponential / linear / fixed)
+│   ├── jitter.ts               # Jitter function factories (full / none)
+│   └── utility.ts              # Utility class (DI container + backoff loop)
 ├── __tests__/
-│   ├── index.test.ts           # Integration tests
+│   ├── unit/
+│   │   ├── delay.test.ts       # Delay function unit tests
+│   │   └── jitter.test.ts      # Jitter function unit tests
+│   ├── integration/
+│   │   └── utility.test.ts     # Utility integration tests
 │   ├── vitest.config.mts       # Vitest configuration
 │   └── tsconfig.json           # TypeScript config for tests
 ├── example/                    # Usage examples
 │   ├── sample.mjs              # Default config example
 │   ├── sampleWithConfig.mjs    # Custom config example
 │   ├── sampleWithAxios.mjs     # HTTP retry example (axios)
+│   ├── sampleWithShouldRetry.mjs
+│   ├── sampleWithOnRetry.mjs
+│   ├── sampleWithTimeout.mjs
+│   ├── sampleWithStrategy.mjs
+│   ├── sampleWithAbort.mjs
 │   └── html/                   # Browser example (Vite dev server)
 ├── dist/                       # Build output (generated)
 │   ├── index.mjs               # ESM bundle
@@ -54,50 +62,104 @@ backoff-util/
 └── package.json
 ```
 
+## Core Types
+
+### `BackoffOptions`
+
+Configuration interface passed to the `Utility` constructor. All properties are optional.
+
+| Option        | Type                                           | Default          |
+| ------------- | ---------------------------------------------- | ---------------- |
+| `retryCount`  | `number`                                       | `10`             |
+| `minDelay`    | `number`                                       | `10`             |
+| `maxDelay`    | `number`                                       | `1000`           |
+| `delay`       | `DelayFn \| 'exponential' \| 'linear' \| 'fixed'` | `'exponential'` |
+| `factor`      | `number`                                       | `2`              |
+| `jitter`      | `JitterFn \| 'full' \| 'none'`                  | `'full'`         |
+| `shouldRetry` | `(ctx: BackoffContext) => boolean`             | retry always     |
+| `onRetry`     | `(ctx: BackoffContext) => void`                | `console.warn`   |
+| `timeoutMs`   | `number`                                       | none             |
+| `signal`      | `AbortSignal`                                  | none             |
+
+### `BackoffContext`
+
+| Field     | Type      | Description                              |
+| --------- | --------- | ---------------------------------------- |
+| `attempt` | `number`  | Current attempt index (0-based)          |
+| `error`   | `unknown` | The error that caused the retry          |
+| `elapsed` | `number`  | Total elapsed time since the first call (ms) |
+
+### `DelayFn`
+
+```ts
+type DelayFn = (ctx: BackoffContext) => number;
+```
+
+Returns the raw delay in ms for a given attempt context. Built-in strategies:
+
+| Strategy      | Formula                                         |
+| ------------- | ----------------------------------------------- |
+| `exponential` | `min(minDelay * factor^attempt, maxDelay)`      |
+| `linear`      | `min(minDelay * (attempt + 1), maxDelay)`       |
+| `fixed`       | `minDelay`                                      |
+
+### `JitterFn`
+
+```ts
+type JitterFn = (delay: number) => number;
+```
+
+Takes the raw delay and returns a jittered delay. Built-in strategies:
+
+| Strategy | Behavior                                                    |
+| -------- | ----------------------------------------------------------- |
+| `full`   | Returns a random value in `[0, delay)` to spread retry timing |
+| `none`   | Returns `delay` unchanged                                   |
+
 ## Core Classes
-
-### `BackoffConfig`
-
-Holds the retry configuration. All setters return `this` for method chaining.
-
-| Property       | Type                                           | Default (`newWithDefault`) | Description                                          |
-| -------------- | ---------------------------------------------- | -------------------------- | ---------------------------------------------------- |
-| `retryCount`   | `number`                                       | `10`                       | Maximum number of retry attempts                     |
-| `minDelay`     | `number`                                       | `10`                       | Base delay value (ms) used in the backoff formula    |
-| `maxDelay`     | `number`                                       | `1000`                     | Upper bound for the computed delay (ms)              |
-| `shouldRetry`  | `(error: unknown, attempt: number) => boolean` | `undefined`                | Predicate to decide whether to retry; rethrows immediately if it returns `false` |
-| `onRetry`      | `(error: unknown, attempt: number) => void`    | `undefined`                | Called on each retry instead of the built-in `console.warn` |
-| `timeoutMs`    | `number`                                       | `undefined`                | Total elapsed time limit (ms); throws when exceeded  |
-| `strategy`     | `'exponential' \| 'linear' \| 'fixed'`        | `'exponential'`            | Delay calculation strategy (see Backoff Algorithm)   |
-| `signal`       | `AbortSignal`                                  | `undefined`                | Cancels the retry loop when the signal is aborted    |
 
 ### `Utility`
 
-The main class. Instantiated via static factory methods; the constructor is private.
+The main class. Accepts `BackoffOptions` in its public constructor; you own the instance lifecycle.
 
-| Method                          | Description                                       |
-| ------------------------------- | ------------------------------------------------- |
-| `Utility.newWithDefault()`      | Creates an instance with default `BackoffConfig`  |
-| `Utility.newWithConfig(config)` | Creates an instance with a custom `BackoffConfig` |
-| `backoff<T>(callback)`          | Executes the callback with the configured backoff |
+| Method                    | Description                                       |
+| ------------------------- | ------------------------------------------------- |
+| `constructor(options)`    | Creates an instance and normalizes delay/jitter    |
+| `backoff<T>(callback)`    | Executes the callback with the configured backoff |
+
+Construction diagram:
+
+```
+BackoffOptions
+  ├── delay string ──► normalizeDelay() ──► DelayFn (cached)
+  ├── delay function ──────────────────────► DelayFn (passthrough)
+  ├── jitter string ──► normalizeJitter() ──► JitterFn (cached)
+  └── jitter function ──────────────────────► JitterFn (passthrough)
+```
+
+Normalization happens once at construction time, so the hot path (the retry loop) has zero branching.
 
 ## Backoff Algorithm
 
-The sleep duration after each failed attempt depends on the configured `strategy`:
+The `backoff` method executes the following loop:
 
-| Strategy      | Formula                                           |
-| ------------- | ------------------------------------------------- |
-| `exponential` | `min(minDelay * 2^attempt, maxDelay) + jitter`   |
-| `linear`      | `min(minDelay * (attempt + 1), maxDelay) + jitter` |
-| `fixed`       | `minDelay + jitter`                               |
-
-`jitter` is a random value between 1–10 ms to prevent thundering-herd issues.
-
-If the callback still fails after `retryCount` attempts (or `timeoutMs` is exceeded, or the `AbortSignal` is triggered), an error is thrown.
+```
+for attempt = 0; attempt <= retryCount; attempt++:
+  1. check signal.aborted → throw AbortError
+  2. try callback → return on success
+  3. check signal.aborted → throw AbortError
+  4. check timeoutMs → throw Error if exceeded
+  5. check shouldRetry(ctx) → rethrow if returns false
+  6. call onRetry(ctx) if provided
+  7. rawDelay = delay(ctx)
+  8. wait = jitter(rawDelay)
+  9. sleep(wait ms)
+throw Error("Over retry")
+```
 
 ## Build Output
 
-Vite is configured in library mode (`vite.config.mts`) with `vite-plugin-dts` to emit type declarations.
+Vite is configured in library mode (`vite.config.mts`).
 
 | File                  | Format | Usage                  |
 | --------------------- | ------ | ---------------------- |

@@ -1,17 +1,20 @@
 /**
  * onRetry example
  *
- * Replaces the built-in console.warn with a custom retry hook.
+ * Adds a custom retry hook via DI.
  */
-import { BackoffConfig, Utility } from '@aecomet/backoff-util';
+import { Utility } from '@aecomet/backoff-util';
 
 let attempt = 0;
 
-const config = new BackoffConfig(5, 10, 500).setOnRetry((error, i) => {
-  console.log(`[onRetry] attempt=${i} error="${error.message}"`);
+const utility = new Utility({
+  retryCount: 5,
+  minDelay: 10,
+  maxDelay: 500,
+  onRetry: (ctx) => {
+    console.log(`[onRetry] attempt=${ctx.attempt} error="${ctx.error.message}"`);
+  },
 });
-
-const utility = Utility.newWithConfig(config);
 
 const result = await utility.backoff(async () => {
   attempt++;
