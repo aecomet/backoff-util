@@ -148,3 +148,7 @@ pnpm link -g .
 ## Architecture
 
 See [`docs/architecture.md`](./docs/architecture.md) for project structure and design details.
+
+## Migration
+
+If you are upgrading from v1, see the [migration guide](./docs/migrations/v1-to-v2.md).
