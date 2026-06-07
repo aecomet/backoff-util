@@ -1,6 +1,4 @@
-import { BackoffConfig } from '@src/lib/BackoffConfig';
-import { Utility } from '@src/lib/Utility';
-import type { BackoffStrategy } from '@src/lib/BackoffConfig';
-
-export { BackoffConfig, Utility };
-export type { BackoffStrategy };
+export { Utility } from './utility';
+export { createExponentialDelay, createLinearDelay, createFixedDelay } from './delay';
+export { createFullJitter, createNoJitter } from './jitter';
+export type { BackoffContext, BackoffOptions, BackoffStrategy, DelayFn, JitterFn } from './types';
