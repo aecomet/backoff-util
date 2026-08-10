@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 
 export default defineConfig({
-  root: path.resolve(__dirname, '.'),
+  root: path.resolve(import.meta.dirname, '.'),
   plugins: [
     // generate html
     createHtmlPlugin()

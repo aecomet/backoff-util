@@ -6,27 +6,28 @@
     "exponential backoff",
     "retry"
   ],
-  "main": "dist/index.umd.js",
+  "type": "module",
+  "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/src/index.d.ts",
+        "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/src/index.d.ts",
-        "default": "./dist/index.umd.cjs"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
     }
   },
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.mts",
   "scripts": {
     "test": "vitest --config __tests__/vitest.config.mts run",
     "dev:html": "vite --config example/html/vite.config.mts",
-    "build": "vite build",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "build": "tsdown",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
@@ -41,11 +42,11 @@
   "license": "MIT",
   "devDependencies": {
     "@vitest/ui": "^4.1.10",
-    "axios": "^1.18.1",
-    "prettier": "^3.9.5",
-    "typescript": "^6.0.3",
-    "vite": "^8.1.4",
-    "vite-plugin-dts": "5.0.3",
+    "axios": "^1.19.0",
+    "oxfmt": "^0.62.0",
+    "tsdown": "^0.22.14",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
     "vite-plugin-html": "^3.2.2",
     "vitest": "^4.1.10"
   }

@@ -73,7 +73,7 @@ export type { BackoffOptions } from '@src/types';
 
 ## Formatting
 
-Follow `prettier.config.js`:
+Follow `.oxfmtrc.json`:
 
 | Rule             | Value    |
 | ---------------- | -------- |
