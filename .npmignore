@@ -11,9 +11,9 @@ example/
 docs/
 
 # Config files
-vite.config.mts
+tsdown.config.ts
 tsconfig.json
-prettier.config.js
+prettier.config.cjs
 pnpm-lock.yaml
 .editorconfig
 .node-version

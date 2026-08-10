@@ -9,12 +9,12 @@ applyTo: '**'
 ## Project Overview
 
 - TypeScript utility library (`@aecomet/backoff-util`)
-- Build tool: Vite
+- Build tool: tsdown (rolldown)
 - Test framework: Vitest
 - Package manager: pnpm
 - Source code: `src/`
 - Tests: `__tests__/`
-- Build output: `dist/` (UMD / ESM / type declarations)
+- Build output: `dist/` (ESM / CJS / type declarations)
 
 ## Coding Conventions
 
@@ -32,7 +32,7 @@ applyTo: '**'
 
 ### Prettier
 
-Follow the project's `prettier.config.js`:
+Follow the project's `prettier.config.cjs`:
 
 - `printWidth`: 120
 - `singleQuote`: true

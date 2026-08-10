@@ -2,14 +2,14 @@
 
 ## Overview
 
-`@aecomet/backoff-util` is a zero-dependency TypeScript utility library that provides configurable retry logic with backoff for any async function. It is distributed as both ESM and UMD modules.
+`@aecomet/backoff-util` is a zero-dependency TypeScript utility library that provides configurable retry logic with backoff for any async function. It is distributed as both ESM and CJS modules.
 
 ## Tech Stack
 
 | Category       | Tool / Library         | Version |
 | -------------- | ---------------------- | ------- |
-| Language       | TypeScript             | ^5.x    |
-| Build          | Vite                   | ^8.x    |
+| Language       | TypeScript             | ^7.x    |
+| Build          | tsdown (rolldown)      | ^0.22.x |
 | Test           | Vitest                 | ^4.x    |
 | Package manager| pnpm                   | 11      |
 | CI             | GitHub Actions         | —       |
@@ -45,8 +45,9 @@ backoff-util/
 │   └── html/                   # Browser example (Vite dev server)
 ├── dist/                       # Build output (generated)
 │   ├── index.mjs               # ESM bundle
-│   ├── index.umd.cjs           # UMD bundle (CommonJS)
-│   └── index.d.ts              # Type declarations
+│   ├── index.cjs               # CJS bundle
+│   ├── index.d.mts             # ESM type declarations
+│   └── index.d.cts             # CJS type declarations
 ├── docs/
 │   └── architecture.md         # This file
 ├── .github/
@@ -55,7 +56,7 @@ backoff-util/
 │   └── workflows/
 │       ├── test-runner.yml     # Runs tests on pull requests
 │       └── lint-runner.yml     # Runs commitlint on pull requests
-├── vite.config.mts             # Vite library build configuration
+├── tsdown.config.ts            # tsdown library build configuration
 ├── tsconfig.json               # Root TypeScript configuration
 ├── prettier.config.js          # Prettier formatting rules
 ├── pnpm-lock.yaml
@@ -159,13 +160,14 @@ throw Error("Over retry")
 
 ## Build Output
 
-Vite is configured in library mode (`vite.config.mts`).
+tsdown is configured in `tsdown.config.ts` and emits ESM + CJS bundles with type declarations.
 
 | File                  | Format | Usage                  |
 | --------------------- | ------ | ---------------------- |
 | `dist/index.mjs`      | ESM    | `import` (bundlers)    |
-| `dist/index.umd.cjs`  | UMD    | `require` (CommonJS)   |
-| `dist/index.d.ts`     | —      | TypeScript types       |
+| `dist/index.cjs`      | CJS    | `require` (CommonJS)   |
+| `dist/index.d.mts`    | ESM    | TypeScript types       |
+| `dist/index.d.cts`    | CJS    | TypeScript types       |
 
 ## CI / CD
 
