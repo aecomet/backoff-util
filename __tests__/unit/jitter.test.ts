@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createFullJitter, createNoJitter } from '@src/jitter';
+import { createFullJitter, createNoJitter, createDecorrelatedJitter } from '@src/jitter';
 
 describe('createFullJitter', () => {
   test('returns a value between 0 and delay', () => {
@@ -24,5 +24,27 @@ describe('createNoJitter', () => {
     expect(jitter(1000)).toBe(1000);
     expect(jitter(0)).toBe(0);
     expect(jitter(42)).toBe(42);
+  });
+});
+
+describe('createDecorrelatedJitter', () => {
+  test('returns values within [minDelay, min(delay, prev * factor)]', () => {
+    const jitter = createDecorrelatedJitter({ minDelay: 100, factor: 2 });
+    for (let i = 0; i < 100; i++) {
+      const v = jitter(1000);
+      expect(v).toBeGreaterThanOrEqual(100);
+      expect(v).toBeLessThanOrEqual(1000);
+    }
+  });
+
+  test('grows progressively but stays bounded by maxDelay', () => {
+    const jitter = createDecorrelatedJitter({ minDelay: 10, factor: 2 });
+    let prev = 0;
+    for (let i = 0; i < 50; i++) {
+      const v = jitter(1000);
+      expect(v).toBeGreaterThanOrEqual(10);
+      expect(v).toBeLessThanOrEqual(1000);
+      prev = v;
+    }
   });
 });

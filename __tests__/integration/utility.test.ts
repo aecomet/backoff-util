@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import { Utility } from '@src/index';
+import { BackoffAbortError, BackoffError, BackoffTimeoutError } from '@src/errors';
 
 describe('Utility', () => {
   test('returns value when callback succeeds on first attempt', async () => {
@@ -193,5 +194,64 @@ describe('Utility', () => {
     const start = Date.now();
     await expect(util.backoff(fn)).rejects.toThrow('timed out');
     expect(Date.now() - start).toBeLessThan(500);
+  });
+
+  test('throws BackoffError with cause when all retries are exhausted', async () => {
+    const cause = new Error('fatal failure');
+    const fn = vi.fn().mockRejectedValue(cause);
+    const util = new Utility({ retryCount: 2, minDelay: 1, maxDelay: 5, jitter: 'none' });
+
+    await expect(util.backoff(fn)).rejects.toSatisfy(
+      (e: unknown) => e instanceof BackoffError && (e as Error).cause === cause
+    );
+  });
+
+  test('throws BackoffTimeoutError (instanceof BackoffError)', async () => {
+    const fn = vi.fn().mockRejectedValue(new Error('slow'));
+    const util = new Utility({ retryCount: 100, minDelay: 5, maxDelay: 20, jitter: 'none', timeoutMs: 30 });
+
+    await expect(util.backoff(fn)).rejects.toBeInstanceOf(BackoffTimeoutError);
+    await expect(util.backoff(fn)).rejects.toBeInstanceOf(BackoffError);
+  });
+
+  test('throws BackoffAbortError (instanceof BackoffError)', async () => {
+    const controller = new AbortController();
+    const fn = vi.fn().mockRejectedValueOnce(new Error('e1')).mockRejectedValue(new Error('e2'));
+    const util = new Utility({
+      retryCount: 5,
+      minDelay: 1000,
+      maxDelay: 1000,
+      jitter: 'none',
+      signal: controller.signal
+    });
+
+    setTimeout(() => controller.abort(), 10);
+    await expect(util.backoff(fn)).rejects.toBeInstanceOf(BackoffAbortError);
+    await expect(util.backoff(fn)).rejects.toBeInstanceOf(BackoffError);
+  });
+
+  test('accepts a synchronous callback', async () => {
+    const util = new Utility();
+    const result = await util.backoff(() => 42);
+    expect(result).toBe(42);
+  });
+
+  test('supports async onRetry callback', { timeout: 10000 }, async () => {
+    const order: string[] = [];
+    const fn = vi.fn().mockRejectedValueOnce(new Error('e1')).mockResolvedValueOnce('ok');
+
+    const util = new Utility({
+      retryCount: 5,
+      minDelay: 1,
+      maxDelay: 5,
+      jitter: 'none',
+      onRetry: async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        order.push('retry');
+      }
+    });
+
+    await util.backoff(fn);
+    expect(order).toEqual(['retry']);
   });
 });
