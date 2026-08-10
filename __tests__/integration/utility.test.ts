@@ -53,7 +53,9 @@ describe('Utility', () => {
     expect(onRetry).toHaveBeenCalledWith({
       attempt: 0,
       error: expect.any(Error),
-      elapsed: expect.any(Number)
+      elapsed: expect.any(Number),
+      remaining: 5,
+      nextDelay: expect.any(Number)
     });
   });
 
@@ -84,11 +86,14 @@ describe('Utility', () => {
     const util = new Utility({ retryCount: 5, minDelay: 10, maxDelay: 100, delay: customDelay, jitter: 'none' });
     await util.backoff(fn);
 
-    expect(customDelay).toHaveBeenCalledWith({
-      attempt: 0,
-      error: expect.any(Error),
-      elapsed: expect.any(Number)
-    });
+    expect(customDelay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attempt: 0,
+        error: expect.any(Error),
+        elapsed: expect.any(Number),
+        remaining: 5
+      })
+    );
   });
 
   test('accepts custom jitter function (DI point)', async () => {
@@ -99,5 +104,94 @@ describe('Utility', () => {
     await util.backoff(fn);
 
     expect(customJitter).toHaveBeenCalledWith(10);
+  });
+
+  test('context includes remaining retry count', { timeout: 10000 }, async () => {
+    const fn = vi.fn().mockRejectedValue(new Error('e'));
+    const delays: number[] = [];
+    const util = new Utility({
+      retryCount: 3,
+      minDelay: 1,
+      maxDelay: 5,
+      jitter: 'none',
+      delay: (ctx) => {
+        delays.push(ctx.remaining);
+        return 1;
+      }
+    });
+
+    await util.backoff(fn).catch(() => {});
+
+    expect(delays).toEqual([3, 2, 1]);
+  });
+
+  test('onRetry receives nextDelay for telemetry', { timeout: 10000 }, async () => {
+    const onRetry = vi.fn();
+    const fn = vi.fn().mockRejectedValueOnce(new Error('e1')).mockResolvedValueOnce('ok');
+    const util = new Utility({
+      retryCount: 5,
+      minDelay: 100,
+      maxDelay: 100,
+      jitter: 'none',
+      onRetry
+    });
+
+    await util.backoff(fn);
+
+    expect(onRetry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attempt: 0,
+        remaining: 5,
+        nextDelay: 100
+      })
+    );
+  });
+
+  test('onRetry receives undefined nextDelay on final attempt', { timeout: 10000 }, async () => {
+    const onRetry = vi.fn();
+    const fn = vi.fn().mockRejectedValue(new Error('always fails'));
+    const util = new Utility({ retryCount: 1, minDelay: 1, maxDelay: 5, jitter: 'none', onRetry });
+
+    await util.backoff(fn).catch(() => {});
+
+    expect(onRetry).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        attempt: 1,
+        remaining: 0,
+        nextDelay: undefined
+      })
+    );
+  });
+
+  test('aborts immediately during delay when signal is triggered', async () => {
+    const controller = new AbortController();
+    const fn = vi.fn().mockRejectedValueOnce(new Error('e1')).mockRejectedValue(new Error('e2'));
+    const util = new Utility({
+      retryCount: 5,
+      minDelay: 1000,
+      maxDelay: 1000,
+      jitter: 'none',
+      signal: controller.signal
+    });
+
+    setTimeout(() => controller.abort(), 10);
+    const start = Date.now();
+    await expect(util.backoff(fn)).rejects.toThrow('Backoff aborted.');
+    expect(Date.now() - start).toBeLessThan(500);
+  });
+
+  test('respects timeout during delay without waiting for full delay', { timeout: 10000 }, async () => {
+    const fn = vi.fn().mockRejectedValue(new Error('slow'));
+    const util = new Utility({
+      retryCount: 100,
+      minDelay: 10000,
+      maxDelay: 10000,
+      jitter: 'none',
+      timeoutMs: 50
+    });
+
+    const start = Date.now();
+    await expect(util.backoff(fn)).rejects.toThrow('timed out');
+    expect(Date.now() - start).toBeLessThan(500);
   });
 });

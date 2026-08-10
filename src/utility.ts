@@ -66,16 +66,63 @@ export class Utility {
           throw new Error('Backoff timed out.');
         }
 
-        const ctx: BackoffContext = { attempt: i, error, elapsed };
+        const isLastAttempt = i === retryCount;
+        const ctx: BackoffContext = { attempt: i, error, elapsed, remaining: retryCount - i, nextDelay: undefined };
+
         if (shouldRetry && !shouldRetry(ctx)) throw error;
+
+        let waitTime = 0;
+        if (!isLastAttempt) {
+          const raw = delay(ctx);
+          waitTime = jitter(raw);
+          ctx.nextDelay = waitTime;
+        }
 
         if (onRetry) onRetry(ctx);
 
-        const raw = delay(ctx);
-        const waitTime = jitter(raw);
-        await new Promise((r) => setTimeout(r, waitTime));
+        if (isLastAttempt) break;
+
+        await this.sleep(waitTime, startTime, timeoutMs, signal);
       }
     }
     throw new Error('Over retry, all the callback caused unexpected errors.');
+  }
+
+  private sleep(
+    waitTime: number,
+    startTime: number,
+    timeoutMs: number | undefined,
+    signal: AbortSignal | undefined
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        cleanup();
+        resolve();
+      }, waitTime);
+
+      const onAbort = () => {
+        cleanup();
+        reject(new DOMException('Backoff aborted.', 'AbortError'));
+      };
+
+      const checkTimeout = () => {
+        cleanup();
+        reject(new Error('Backoff timed out.'));
+      };
+
+      let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+      if (timeoutMs !== undefined) {
+        const remaining = timeoutMs - (Date.now() - startTime);
+        timeoutTimer = setTimeout(checkTimeout, Math.max(remaining, 0));
+      }
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+
+      function cleanup() {
+        clearTimeout(timer);
+        if (timeoutTimer) clearTimeout(timeoutTimer);
+        signal?.removeEventListener('abort', onAbort);
+      }
+    });
   }
 }

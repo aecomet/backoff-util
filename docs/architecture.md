@@ -89,6 +89,8 @@ Configuration interface passed to the `Utility` constructor. All properties are 
 | `attempt` | `number`  | Current attempt index (0-based)          |
 | `error`   | `unknown` | The error that caused the retry          |
 | `elapsed` | `number`  | Total elapsed time since the first call (ms) |
+| `remaining` | `number`  | Number of retries left (including current) |
+| `nextDelay` | `number` \| `undefined` | Next wait time in ms (undefined on final attempt) |
 
 ### `DelayFn`
 
@@ -151,11 +153,45 @@ for attempt = 0; attempt <= retryCount; attempt++:
   3. check signal.aborted → throw AbortError
   4. check timeoutMs → throw Error if exceeded
   5. check shouldRetry(ctx) → rethrow if returns false
-  6. call onRetry(ctx) if provided
-  7. rawDelay = delay(ctx)
-  8. wait = jitter(rawDelay)
-  9. sleep(wait ms)
+  6. if attempt < retryCount: nextDelay = jitter(delay(ctx))
+  7. call onRetry(ctx) with nextDelay if provided
+  8. if attempt == retryCount → break (no delay after the final failure)
+  9. sleep(nextDelay ms), aborted by signal / timeout during sleep
 throw Error("Over retry")
+```
+
+## Retry Flow (Sequence Diagram)
+
+The following sequence diagram illustrates the retry behavior of `backoff`:
+
+```mermaid
+sequenceDiagram
+  participant C as Caller
+  participant U as Utility
+  participant F as Callback
+
+  C->>U: backoff(callback)
+  loop attempt 0..retryCount
+    U->>F: invoke callback()
+    alt success
+      F-->>U: result
+      U-->>C: result
+    else error
+      F-->>U: throw error
+      alt signal aborted
+        U-->>C: throw AbortError
+      else timeoutMs exceeded
+        U-->>C: throw "Backoff timed out."
+      else shouldRetry(ctx) returns false
+        U-->>C: rethrow original error
+      else retry
+        U->>U: delay(ctx) + jitter
+        note over U: waits (cancelable by signal / timeout)
+        U->>U: retry attempt +1
+      end
+    end
+  end
+  U-->>C: throw "Over retry"
 ```
 
 ## Build Output
