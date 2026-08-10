@@ -48,18 +48,18 @@ const result = await utility.backoff(async () => {
 
 ### `BackoffOptions`
 
-| Option        | Type                                   | Default         | Description                                                    |
-| ------------- | -------------------------------------- | --------------- | -------------------------------------------------------------- |
-| `retryCount`  | `number`                               | `10`            | Maximum number of retry attempts                               |
-| `minDelay`    | `number`                               | `10`            | Base delay value (ms) used in the backoff formula              |
-| `maxDelay`    | `number`                               | `1000`          | Upper bound for the computed delay (ms)                        |
-| `delay`       | `'exponential' \| 'linear' \| 'fixed'` | `'exponential'` | Delay calculation strategy, or a custom function               |
-| `factor`      | `number`                               | `2`             | Multiplier for exponential delay (`minDelay * factor^attempt`) |
-| `jitter`      | `'full' \| 'none'`                     | `'full'`        | Jitter strategy, or a custom function                          |
-| `shouldRetry` | `(ctx: BackoffContext) => boolean`     | retry always    | Return `false` to stop retrying immediately                    |
-| `onRetry`     | `(ctx: BackoffContext) => void`        | none            | Called on each retry for logging or side effects               |
-| `timeoutMs`   | `number`                               | none            | Total elapsed time limit (ms); throws when exceeded            |
-| `signal`      | `AbortSignal`                          | none            | Cancels the retry loop when the signal is aborted              |
+| Option        | Type                                             | Default         | Description                                                        |
+| ------------- | ------------------------------------------------ | --------------- | ------------------------------------------------------------------ |
+| `retryCount`  | `number`                                         | `10`            | Maximum number of retry attempts                                   |
+| `minDelay`    | `number`                                         | `10`            | Base delay value (ms) used in the backoff formula                  |
+| `maxDelay`    | `number`                                         | `1000`          | Upper bound for the computed delay (ms)                            |
+| `delay`       | `'exponential' \| 'linear' \| 'fixed'`           | `'exponential'` | Delay calculation strategy, or a custom function                   |
+| `factor`      | `number`                                         | `2`             | Multiplier for exponential delay (`minDelay * factor^attempt`)     |
+| `jitter`      | `'full' \| 'none' \| 'decorrelated'`             | `'full'`        | Jitter strategy, or a custom function                              |
+| `shouldRetry` | `(ctx: BackoffContext) => boolean`               | retry always    | Return `false` to stop retrying immediately                        |
+| `onRetry`     | `(ctx: BackoffContext) => void \| Promise<void>` | none            | Called on each retry (async supported) for logging or side effects |
+| `timeoutMs`   | `number`                                         | none            | Total elapsed time limit (ms); throws when exceeded                |
+| `signal`      | `AbortSignal`                                    | none            | Cancels the retry loop when the signal is aborted                  |
 
 ### Advanced usage
 
@@ -86,6 +86,36 @@ const utility = new Utility({
 });
 
 const result = await utility.backoff(async () => fetchSomething());
+```
+
+The callback may be synchronous — a non-Promise return value is resolved as-is:
+
+```js
+const result = await utility.backoff(() => cachedValue); // resolves immediately
+```
+
+## Errors
+
+All errors thrown by `backoff()` inherit from `BackoffError` (itself an `Error`), so you can
+catch retry-specific failures with a single `instanceof` check:
+
+| Class                 | When thrown                       | Notes                                 |
+| --------------------- | --------------------------------- | ------------------------------------- |
+| `BackoffError`        | Retries exhausted without success | `cause` holds the last callback error |
+| `BackoffTimeoutError` | `timeoutMs` exceeded              | Extends `BackoffError`                |
+| `BackoffAbortError`   | `signal` aborted                  | Extends `BackoffError`                |
+
+```js
+import { Utility, BackoffError } from '@aecomet/backoff-util';
+
+try {
+  await utility.backoff(fetchSomething);
+} catch (error) {
+  if (error instanceof BackoffError) {
+    // Original failure is preserved for diagnostics
+    console.error('cause:', error.cause);
+  }
+}
 ```
 
 ### Custom delay / jitter (DI)

@@ -118,6 +118,7 @@ Takes the raw delay and returns a jittered delay. Built-in strategies:
 | -------- | ----------------------------------------------------------- |
 | `full`   | Returns a random value in `[0, delay)` to spread retry timing |
 | `none`   | Returns `delay` unchanged                                   |
+| `decorrelated` | Returns a random value in `[minDelay, min(delay, prevDelay * factor))` — grows aggressively at first, then stabilizes |
 
 ## Core Classes
 
@@ -148,16 +149,16 @@ The `backoff` method executes the following loop:
 
 ```
 for attempt = 0; attempt <= retryCount; attempt++:
-  1. check signal.aborted → throw AbortError
+  1. check signal.aborted → throw BackoffAbortError
   2. try callback → return on success
-  3. check signal.aborted → throw AbortError
-  4. check timeoutMs → throw Error if exceeded
+  3. check signal.aborted → throw BackoffAbortError
+  4. check timeoutMs → throw BackoffTimeoutError if exceeded
   5. check shouldRetry(ctx) → rethrow if returns false
   6. if attempt < retryCount: nextDelay = jitter(delay(ctx))
-  7. call onRetry(ctx) with nextDelay if provided
+  7. await onRetry(ctx) with nextDelay if provided
   8. if attempt == retryCount → break (no delay after the final failure)
   9. sleep(nextDelay ms), aborted by signal / timeout during sleep
-throw Error("Over retry")
+throw BackoffError("Over retry", { cause: lastError })
 ```
 
 ## Retry Flow (Sequence Diagram)

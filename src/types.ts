@@ -17,9 +17,9 @@ export interface BackoffOptions {
   maxDelay?: number;
   factor?: number;
   delay?: DelayFn | BackoffStrategy;
-  jitter?: JitterFn | 'full' | 'none';
+  jitter?: JitterFn | 'full' | 'none' | 'decorrelated';
   shouldRetry?: (ctx: BackoffContext) => boolean;
-  onRetry?: (ctx: BackoffContext) => void;
+  onRetry?: (ctx: BackoffContext) => void | Promise<void>;
   timeoutMs?: number;
   signal?: AbortSignal;
 }

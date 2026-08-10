@@ -1,6 +1,7 @@
 import type { BackoffContext, BackoffOptions, DelayFn, JitterFn } from '@src/types';
 import { createExponentialDelay, createLinearDelay, createFixedDelay } from '@src/delay';
-import { createFullJitter, createNoJitter } from '@src/jitter';
+import { createFullJitter, createNoJitter, createDecorrelatedJitter } from '@src/jitter';
+import { BackoffAbortError, BackoffError, BackoffTimeoutError } from '@src/errors';
 
 function normalizeDelay(delay: BackoffOptions['delay'], minDelay: number, maxDelay: number, factor: number): DelayFn {
   if (typeof delay === 'function') return delay;
@@ -14,11 +15,13 @@ function normalizeDelay(delay: BackoffOptions['delay'], minDelay: number, maxDel
   }
 }
 
-function normalizeJitter(jitter: BackoffOptions['jitter']): JitterFn {
+function normalizeJitter(jitter: BackoffOptions['jitter'], minDelay: number, factor: number): JitterFn {
   if (typeof jitter === 'function') return jitter;
   switch (jitter) {
     case 'none':
       return createNoJitter();
+    case 'decorrelated':
+      return createDecorrelatedJitter({ minDelay, factor });
     default:
       return createFullJitter();
   }
@@ -29,7 +32,7 @@ export class Utility {
   private readonly jitter: JitterFn;
   private readonly retryCount: number;
   private readonly shouldRetry?: (ctx: BackoffContext) => boolean;
-  private readonly onRetry?: (ctx: BackoffContext) => void;
+  private readonly onRetry?: (ctx: BackoffContext) => void | Promise<void>;
   private readonly timeoutMs?: number;
   private readonly signal?: AbortSignal;
 
@@ -46,24 +49,27 @@ export class Utility {
     this.signal = options.signal;
 
     this.delay = normalizeDelay(options.delay, minDelay, maxDelay, factor);
-    this.jitter = normalizeJitter(options.jitter);
+    this.jitter = normalizeJitter(options.jitter, minDelay, factor);
   }
 
-  async backoff<T>(callback: () => Promise<T>): Promise<T> {
+  async backoff<T>(callback: () => T | Promise<T>): Promise<T> {
     const startTime = Date.now();
     const { signal, timeoutMs, shouldRetry, onRetry, delay, jitter, retryCount } = this;
+    let lastError: unknown;
 
     for (let i = 0; i <= retryCount; i++) {
-      if (signal?.aborted) throw new DOMException('Backoff aborted.', 'AbortError');
+      if (signal?.aborted) throw new BackoffAbortError();
 
       try {
         return await callback();
       } catch (error) {
-        if (signal?.aborted) throw new DOMException('Backoff aborted.', 'AbortError');
+        if (signal?.aborted) throw new BackoffAbortError();
+
+        lastError = error;
 
         const elapsed = Date.now() - startTime;
         if (timeoutMs !== undefined && elapsed >= timeoutMs) {
-          throw new Error('Backoff timed out.');
+          throw new BackoffTimeoutError();
         }
 
         const isLastAttempt = i === retryCount;
@@ -78,14 +84,14 @@ export class Utility {
           ctx.nextDelay = waitTime;
         }
 
-        if (onRetry) onRetry(ctx);
+        if (onRetry) await onRetry(ctx);
 
         if (isLastAttempt) break;
 
         await this.sleep(waitTime, startTime, timeoutMs, signal);
       }
     }
-    throw new Error('Over retry, all the callback caused unexpected errors.');
+    throw new BackoffError('Over retry, all the callback caused unexpected errors.', { cause: lastError });
   }
 
   private sleep(
@@ -102,12 +108,12 @@ export class Utility {
 
       const onAbort = () => {
         cleanup();
-        reject(new DOMException('Backoff aborted.', 'AbortError'));
+        reject(new BackoffAbortError());
       };
 
       const checkTimeout = () => {
         cleanup();
-        reject(new Error('Backoff timed out.'));
+        reject(new BackoffTimeoutError());
       };
 
       let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
