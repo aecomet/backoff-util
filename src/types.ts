@@ -2,6 +2,8 @@ export interface BackoffContext {
   attempt: number;
   error?: unknown;
   elapsed: number;
+  remaining: number;
+  nextDelay?: number;
 }
 
 export type DelayFn = (ctx: BackoffContext) => number;

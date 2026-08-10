@@ -57,7 +57,7 @@ const result = await utility.backoff(async () => {
 | `factor`      | `number`                               | `2`             | Multiplier for exponential delay (`minDelay * factor^attempt`) |
 | `jitter`      | `'full' \| 'none'`                     | `'full'`        | Jitter strategy, or a custom function                          |
 | `shouldRetry` | `(ctx: BackoffContext) => boolean`     | retry always    | Return `false` to stop retrying immediately                    |
-| `onRetry`     | `(ctx: BackoffContext) => void`        | `console.warn`  | Called on each retry for logging or side effects               |
+| `onRetry`     | `(ctx: BackoffContext) => void`        | none            | Called on each retry for logging or side effects               |
 | `timeoutMs`   | `number`                               | none            | Total elapsed time limit (ms); throws when exceeded            |
 | `signal`      | `AbortSignal`                          | none            | Cancels the retry loop when the signal is aborted              |
 
@@ -106,11 +106,41 @@ const utility = new Utility({
 
 Callbacks receive a context object:
 
-| Field     | Type      | Description                                  |
-| --------- | --------- | -------------------------------------------- |
-| `attempt` | `number`  | Current attempt index (0-based)              |
-| `error`   | `unknown` | The error that caused the retry              |
-| `elapsed` | `number`  | Total elapsed time since the first call (ms) |
+| Field       | Type                    | Description                                       |
+| ----------- | ----------------------- | ------------------------------------------------- |
+| `attempt`   | `number`                | Current attempt index (0-based)                   |
+| `error`     | `unknown`               | The error that caused the retry                   |
+| `elapsed`   | `number`                | Total elapsed time since the first call (ms)      |
+| `remaining` | `number`                | Number of retries left (including current)        |
+| `nextDelay` | `number` \| `undefined` | Next wait time in ms (undefined on final attempt) |
+
+## OpenTelemetry integration
+
+`onRetry` receives a `BackoffContext` with `attempt`, `remaining`, `nextDelay`, and `error`.
+Use it to emit retry telemetry from your application's tracer:
+
+```js
+import { trace } from '@opentelemetry/api';
+import { Utility } from '@aecomet/backoff-util';
+
+const tracer = trace.getTracer('http-client');
+
+const utility = new Utility({
+  retryCount: 5,
+  onRetry: (ctx) => {
+    tracer.startActiveSpan('http.retry', (span) => {
+      span.setAttribute('retry.attempt', ctx.attempt);
+      span.setAttribute('retry.remaining', ctx.remaining);
+      span.setAttribute('retry.next_delay_ms', ctx.nextDelay ?? 0);
+      span.setAttribute('retry.elapsed_ms', ctx.elapsed);
+      if (ctx.error instanceof Error) {
+        span.recordException(ctx.error);
+      }
+      span.end();
+    });
+  }
+});
+```
 
 ## Examples
 
