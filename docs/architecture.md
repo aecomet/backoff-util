@@ -58,7 +58,7 @@ backoff-util/
 │       └── lint-runner.yml     # Runs commitlint on pull requests
 ├── tsdown.config.ts            # tsdown library build configuration
 ├── tsconfig.json               # Root TypeScript configuration
-├── prettier.config.js          # Prettier formatting rules
+├── .oxfmtrc.json               # oxfmt formatting rules
 ├── pnpm-lock.yaml
 └── package.json
 ```

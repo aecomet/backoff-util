@@ -30,9 +30,9 @@ applyTo: '**'
 - Use path alias `@src/*` where applicable (configured in vitest config).
 - All public API must be exported from `src/index.ts`.
 
-### Prettier
+### oxfmt
 
-Follow the project's `prettier.config.cjs`:
+Follow the project's `.oxfmtrc.json`:
 
 - `printWidth`: 120
 - `singleQuote`: true

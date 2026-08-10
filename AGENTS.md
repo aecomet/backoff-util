@@ -7,7 +7,7 @@
 - **Package manager**: pnpm
 - **Build**: Vite
 - **Test**: Vitest
-- **Formatter**: Prettier (`printWidth: 120`, `singleQuote: true`, `trailingComma: none`)
+- **Formatter**: oxfmt (`printWidth: 120`, `singleQuote: true`, `trailingComma: none`)
 - **Git hooks**: Lefthook (pre-commit: format check, pre-push: AI review)
 
 ## Reference Documents (read before working)

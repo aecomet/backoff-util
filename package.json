@@ -26,8 +26,8 @@
     "test": "vitest --config __tests__/vitest.config.mts run",
     "dev:html": "vite --config example/html/vite.config.mts",
     "build": "tsdown",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@vitest/ui": "^4.1.10",
     "axios": "^1.19.0",
-    "prettier": "^3.9.6",
+    "oxfmt": "^0.62.0",
     "tsdown": "^0.22.14",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",
