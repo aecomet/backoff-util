@@ -16,13 +16,13 @@ importers:
         version: 4.1.10(vitest@4.1.10)
       axios:
         specifier: ^1.19.0
-        version: 1.19.0(debug@4.4.3)
+        version: 1.20.0(debug@4.4.3)
       oxfmt:
         specifier: ^0.62.0
         version: 0.62.0
       tsdown:
         specifier: ^0.22.14
-        version: 0.22.14(@volar/typescript@2.4.28(typescript@7.0.2))(typescript@7.0.2)
+        version: 0.22.14(@volar/typescript@2.4.28)(typescript@7.0.2)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -468,11 +468,6 @@ packages:
 
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
-    peerDependencies:
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@yuku-codegen/binding-android-arm64@0.8.4':
     resolution: {integrity: sha512-rsYkGl2kOkDRsh1mxriYnk1qBS78vjlBJ3+T2XwtwKwqOliy2n+2Ae0EDxJ/uX1DZLm3KkBZarGO5isEnmHchA==}
@@ -632,8 +627,8 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  axios@1.19.0:
-    resolution: {integrity: sha512-ht/iuYZXEjFxLH/Hkezgd7m6JKlHHXEUSneaDz8uZe1Gj5QZtCnpyDsckvAiEnT89OEbCLmnte4R4sn7P0EKFw==}
+  axios@1.20.0:
+    resolution: {integrity: sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -1645,13 +1640,11 @@ snapshots:
   '@volar/source-map@2.4.28':
     optional: true
 
-  '@volar/typescript@2.4.28(typescript@7.0.2)':
+  '@volar/typescript@2.4.28':
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
-    optionalDependencies:
-      typescript: 7.0.2
     optional: true
 
   '@yuku-codegen/binding-android-arm64@0.8.4':
@@ -1744,7 +1737,7 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  axios@1.19.0(debug@4.4.3):
+  axios@1.20.0(debug@4.4.3):
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.3)
       form-data: 4.0.6
@@ -2187,7 +2180,7 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  rolldown-plugin-dts@0.27.14(@volar/typescript@2.4.28(typescript@7.0.2))(rolldown@1.2.3)(typescript@7.0.2):
+  rolldown-plugin-dts@0.27.14(@volar/typescript@2.4.28)(rolldown@1.2.3)(typescript@7.0.2):
     dependencies:
       dts-resolver: 3.0.0
       get-tsconfig: 5.0.0-beta.5
@@ -2197,7 +2190,7 @@ snapshots:
       yuku-codegen: 0.8.4
       yuku-parser: 0.8.4
     optionalDependencies:
-      '@volar/typescript': 2.4.28(typescript@7.0.2)
+      '@volar/typescript': 2.4.28
       typescript: 7.0.2
     transitivePeerDependencies:
       - oxc-resolver
@@ -2275,7 +2268,7 @@ snapshots:
 
   tree-kill@1.2.2: {}
 
-  tsdown@0.22.14(@volar/typescript@2.4.28(typescript@7.0.2))(typescript@7.0.2):
+  tsdown@0.22.14(@volar/typescript@2.4.28)(typescript@7.0.2):
     dependencies:
       ansis: 4.3.1
       cac: 7.0.0
@@ -2286,7 +2279,7 @@ snapshots:
       obug: 2.1.4
       picomatch: 4.0.5
       rolldown: 1.2.3
-      rolldown-plugin-dts: 0.27.14(@volar/typescript@2.4.28(typescript@7.0.2))(rolldown@1.2.3)(typescript@7.0.2)
+      rolldown-plugin-dts: 0.27.14(@volar/typescript@2.4.28)(rolldown@1.2.3)(typescript@7.0.2)
       tinyexec: 1.3.0
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
