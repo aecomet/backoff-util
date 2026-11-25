@@ -51,7 +51,10 @@ npm version major -m "chore(release): v%s"
 3. 適切な `npm version <patch|minor|major>` 実行
 4. `git push origin main && git push origin --tags`
 5. `gh release create vX.Y.Z ...` で GitHub Release 作成
-6. **backoff-util のみ**: `npm publish --access public`
+6. **backoff-util のみ**: 安定版の GitHub Release を公開すると、GitHub Actions の `Publish to npm` がテストとビルドに成功したパッケージを npm に公開
+
+初回のみ、npm の `@aecomet/backoff-util` の設定で GitHub Actions の Trusted Publisher を追加する。
+Owner は `aecomet`、Repository は `backoff-util`、Workflow filename は `npm-publish.yml` とし、`npm publish` を許可する。
 
 ---
 
@@ -107,7 +110,7 @@ BREAKING CHANGE: `retry(fn)` now requires options object
 - [ ] CHANGELOG 更新（またはリリースノートで代替）
 - [ ] 全テスト合格（typecheck, lint, unit, e2e）
 - [ ] GitHub Release 作成
-- [ ] backoff-util の場合: `npm publish` 実行
+- [ ] backoff-util の場合: `Publish to npm` の成功と npm 上のバージョンを確認
 
 ---
 

@@ -32,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aecomet/backoff-util"
+    "url": "git+https://github.com/aecomet/backoff-util.git"
   },
   "bugs": {
     "url": "https://github.com/aecomet/backoff-util/issues"
